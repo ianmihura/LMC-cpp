@@ -221,10 +221,10 @@ int main(int argc, char** argv) {
     Args args;
     parse_args(argc, argv, args);
 
+    Input = args.inputs;
     load_program(args.file_url);
     loop(args.mode);
 
-    // Disply Output
     for (int i : Output)
         std::cout << "Output " << i << std::endl;
 
