@@ -39,15 +39,13 @@ void bra(int addr) {
 };
 // Branch for next instruction if accumulator is <= 0
 void brz(int addr) {
-    if (Accumulator <= 0) {
+    if (Accumulator <= 0)
         Counter = addr;
-    };
 };
 // Branch for next instruction if accumulator is not 0
 void brp(int addr) {
-    if (Accumulator != 0) {
+    if (Accumulator != 0)
         Counter = addr;
-    };
 };
 // Fetch next value in Inputs to the accumulator
 void inp(int addr) {
@@ -159,12 +157,13 @@ void loop(Mode mode) {
             return;
         }
 
-        // Executes for IN & OUT
-        if (opcode == 9)
+        if (opcode == 9) {
+            // Executes for IN & OUT
             Opcodes[std::stoi(instruction)](address);
-        // Executes for the rest
-        else
+        } else {
+            // Executes for the rest
             Opcodes[opcode](address);
+        }
     }
 
     // Next loop
@@ -172,9 +171,7 @@ void loop(Mode mode) {
 };
 
 
-int main(int argc, char* argv[]) {
-
-    setup();
+void load_program() {
 
     std::vector<int> program_multiply = {
         901,
@@ -198,12 +195,33 @@ int main(int argc, char* argv[]) {
         001
     };
 
-    assign_memory(program_multiply);
-    Input = {
-        5,6
-    };
+    Memory = program_multiply;
+    // assign_memory(program_multiply);
+    Input = { 5, 6 };
+};
 
-    loop(ModeDebug);
+
+Mode parse_args(int argc, char** argv) {
+    for (int i = 0; i < argc; ++i) {
+        if (strcmp(argv[i], "cli") == 0) {
+            return ModeCLI;
+        } else {
+            if (strcmp(argv[i], "debug") == 0) {
+                return ModeDebug;
+            } else if (strcmp(argv[i], "mem") == 0) {
+                return ModeMemory;
+            }
+        }
+    }
+}
+
+int main(int argc, char** argv) {
+
+    setup();
+    load_program();
+
+    Mode mode = parse_args(argc, argv);
+    loop(mode);
 
     // Disply Output
     for (int i : Output)
