@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <unordered_map>
 #include <any>
 #include <functional>
@@ -71,8 +73,7 @@ void setup() {
     Opcodes[902] = &outp;
 }
 
-void assign_memory(std::vector<int> program) {
-    Memory = program;
+void fillup_memory() {
     for (int i = 0; i <= 100; i++)
         if (Memory.size() < i)
             Memory.push_back(0);
@@ -152,7 +153,7 @@ void loop(Mode mode) {
 
         // Prepare next instruction before the actual execution
         Counter++;
-        if (Counter > 100) {
+        if (Counter > 100 && mode != ModeCLI) {
             std::cout << "Counter overflow error" << std::endl;
             return;
         }
@@ -171,46 +172,45 @@ void loop(Mode mode) {
 };
 
 
-void load_program() {
-
-    std::vector<int> program_multiply = {
-        901,
-        716,
-        399,
-        397,
-        901,
-        716,
-        398,
-        598,
-        218,
-        398,
-        715,
-        599,
-        197,
-        399,
-        607,
-        599,
-        902,
-        000,
-        001
-    };
-
-    Memory = program_multiply;
-    // assign_memory(program_multiply);
-    Input = { 5, 6 };
+void load_program(std::string file_url) {
+    std::string line;
+    std::ifstream file;
+    file.open(file_url);
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            Memory.push_back(stoi(line));
+        }
+        file.close();
+    }
 };
 
+// lmc -cli
+// lmc -file mult.lmc -i 1 2
+// lmc -file mult.lmc -i 1 2 -debug
 
-Mode parse_args(int argc, char** argv) {
+struct Args {
+    Mode mode = ModeMemory;
+    std::string file_url;
+    std::vector<int> inputs;
+};
+
+void parse_args(int argc, char** argv, Args& args) {
     for (int i = 0; i < argc; ++i) {
-        if (strcmp(argv[i], "cli") == 0) {
-            return ModeCLI;
-        } else {
-            if (strcmp(argv[i], "debug") == 0) {
-                return ModeDebug;
-            } else if (strcmp(argv[i], "mem") == 0) {
-                return ModeMemory;
+        if (strcmp(argv[i], "-cli") == 0) {
+            args.mode = ModeCLI;
+
+        } else if (strcmp(argv[i], "-file") == 0) {
+            args.file_url = argv[i+1];
+
+        } else if (strcmp(argv[i], "-i") == 0) {
+            int j = 1;
+            while (argv[i+j][0] != '-') {
+                args.inputs.push_back(std::stoi(argv[i+j]));
+                j++;
             }
+
+        } else if (strcmp(argv[i], "-debug") == 0) {
+            args.mode = ModeDebug;
         }
     }
 }
@@ -218,10 +218,11 @@ Mode parse_args(int argc, char** argv) {
 int main(int argc, char** argv) {
 
     setup();
-    load_program();
+    Args args;
+    parse_args(argc, argv, args);
 
-    Mode mode = parse_args(argc, argv);
-    loop(mode);
+    load_program(args.file_url);
+    loop(args.mode);
 
     // Disply Output
     for (int i : Output)
