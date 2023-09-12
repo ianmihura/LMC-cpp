@@ -184,10 +184,6 @@ void load_program(std::string file_url) {
     }
 };
 
-// lmc -cli
-// lmc -file mult.lmc -i 1 2
-// lmc -file mult.lmc -i 1 2 -debug
-
 struct Args {
     Mode mode = ModeMemory;
     std::string file_url;
@@ -216,6 +212,9 @@ void parse_args(int argc, char** argv, Args& args) {
 }
 
 int main(int argc, char** argv) {
+    // lmc -cli
+    // lmc -file cpp/mult.lmc -i 5 6
+    // lmc -file cpp/mult.lmc -i 5 6 -debug
 
     setup();
     Args args;
