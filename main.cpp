@@ -212,10 +212,6 @@ void parse_args(int argc, char** argv, Args& args) {
 }
 
 int main(int argc, char** argv) {
-    // lmc -cli
-    // lmc -file cpp/mult.lmc -i 5 6
-    // lmc -file cpp/mult.lmc -i 5 6 -debug
-
     setup();
     Args args;
     parse_args(argc, argv, args);
