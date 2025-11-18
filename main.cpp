@@ -3,6 +3,7 @@
 #include <sstream>
 #include <unordered_map>
 #include <functional>
+#include <string.h>
 
 
 // TODO dont use global variables
@@ -78,71 +79,69 @@ void setup() {
     Opcodes[902] = &outp;
 }
 
-// TODO use Memory.resize(100, 0) to init memory
-// TODO use enum class Mode: int
-enum Mode { ModeMemory, ModeCLI, ModeDebug };
+enum class Mode { Memory, CLI, Debug };
 
 
 Mode debug() {
-    std::cout << "Memory" << std::endl;
-    for (int i = 0; i < Memory.size(); i++) {
-        if (i == Counter) {
-            std::cout << "> " << Memory[i] << std::endl;
-        } else {
-            std::cout << "  " << Memory[i] << std::endl;
+    while (true) {
+        std::cout << "Memory" << std::endl;
+        for (int i = 0; i < Memory.size(); i++) {
+            if (i == Counter) {
+                std::cout << "> " << Memory.at(i) << std::endl;
+            } else {
+                std::cout << "  " << Memory.at(i) << std::endl;
+            }
         }
-    }
-    std::cout << std::endl;
+        std::cout << std::endl;
 
-    std::cout << "Counter: " << Counter << std::endl;
-    std::cout << "Accumulator: " << Accumulator << std::endl;
-    
-    for (int i : Input) {
-        std::cout << "Input: " << i << std::endl;
-    }
-    for (int i : Output) {
-        std::cout << "Output: " << i << std::endl;
-    }
-    
-    std::cout << std::endl;
-    std::cout << "Debugger stopped the program" << std::endl;
-    std::cout << "> ";
-    std::string cmd;
-    std::cin >> cmd;
+        std::cout << "Counter: " << Counter << std::endl;
+        std::cout << "Accumulator: " << Accumulator << std::endl;
+        
+        for (int i : Input) {
+            std::cout << "Input: " << i << std::endl;
+        }
+        for (int i : Output) {
+            std::cout << "Output: " << i << std::endl;
+        }
+        
+        std::cout << std::endl;
+        std::cout << "Debugger stopped the program" << std::endl;
+        std::cout << "> ";
+        std::string cmd;
+        std::cin >> cmd;
 
-    if (cmd == "s") {  // Step
-        return ModeDebug;
+        if (cmd == "s") {  // Step
+            return Mode::Debug;
 
-    } else if (cmd == "c") {  // Continue
-        return ModeMemory;
+        } else if (cmd == "c") {  // Continue
+            return Mode::Memory;
 
-    } else if (cmd == "q") {  // Quit
-        exit(1);
+        } else if (cmd == "q") {  // Quit
+            exit(1);
 
-    } else if (cmd == "h") {  // Help
-        std::cout << "s Step to next command" << std::endl;
-        std::cout << "c: Continue execution, disable debug" << std::endl;
-        std::cout << "q: Quit the program" << std::endl;
-        std::cout << "h: Show this help message" << std::endl;
+        } else if (cmd == "h") {  // Help
+            std::cout << "s Step to next command" << std::endl;
+            std::cout << "c: Continue execution, disable debug" << std::endl;
+            std::cout << "q: Quit the program" << std::endl;
+            std::cout << "h: Show this help message" << std::endl;
+        };
     };
-
-    return debug();
 };
 
 // Core loop
 void loop(Mode mode) {
     // TODO separate parsing and execution of opcodes
-    while true {
+    while (true) {
         std::string instruction;
 
-        if (mode == ModeCLI) {
+        if (mode == Mode::CLI) {
             std::cout << "Instruction: ";
             std::cin >> instruction;
         } else {
-            instruction = std::to_string(Memory[Counter]);
+            instruction = std::to_string(Memory.at(Counter));
         }
 
-        if (mode == ModeDebug) {
+        if (mode == Mode::Debug) {
             mode = debug();
         }
 
@@ -160,14 +159,13 @@ void loop(Mode mode) {
 
         // Prepare next instruction before the actual execution
         Counter++;
-        if (Counter > 100 && mode != ModeCLI) {
+        if (Counter > 100 && mode != Mode::CLI) {
             std::cout << "Counter overflow error" << std::endl;
             return;
         }
 
         if (opcode == 9) {
             // Executes for IN & OUT
-            // TODO bounds check address
             // TODO stoi error checking
             Opcodes[std::stoi(instruction)](address);
         } else {
@@ -184,15 +182,16 @@ void load_program(std::string file_url) {
     file.open(file_url);
     if (file.is_open()) {
         while (getline(file, line)) {
-            // TODO stoi error checking
-            Memory.push_back(stoi(line));
+            // TODO stoi error handling
+            int _line = stoi(line);
+            Memory.push_back(_line);
         }
         file.close();
     }
 };
 
 struct Args {
-    Mode mode = ModeMemory;
+    Mode mode = Mode::Memory;
     std::string file_url;
     std::vector<int> inputs;
 };
@@ -200,23 +199,27 @@ struct Args {
 void parse_args(int argc, char** argv, Args& args) {
     for (int i = 0; i < argc; ++i) {
         if (strcmp(argv[i], "-cli") == 0) {
-            args.mode = ModeCLI;
+            args.mode = Mode::CLI;
 
         } else if (strcmp(argv[i], "-file") == 0) {
-            // TODO check bounds of argv
-            args.file_url = argv[i+1];
+            if (i+1 < argc) {
+                args.file_url = argv[i+1];
+            } else {
+                std::cerr << "Error: -file flag requires filename" << std::endl;
+            }
 
         } else if (strcmp(argv[i], "-i") == 0) {
             int j = 1;
-            // TODO check bounds of argv
-            while (argv[i+j][0] != '-') {
+            while (i+j < argc && argv[i+j][0] != '-') {
                 // TODO stoi error checking
-                args.inputs.push_back(std::stoi(argv[i+j]));
+                int _inp = std::stoi(argv[i+j]);
+                args.inputs.push_back(_inp);
                 j++;
             }
+            i += (j-1);
 
         } else if (strcmp(argv[i], "-debug") == 0) {
-            args.mode = ModeDebug;
+            args.mode = Mode::Debug;
         }
     }
 }
