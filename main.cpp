@@ -7,7 +7,6 @@
 
 
 // TODO dont use global variables
-// TODO dont use magic numbers -- static const int
 
 // Instructions and data are saved in Memory
 std::vector<int> Memory;
@@ -19,6 +18,9 @@ int Counter = 0;
 std::vector<int> Input;
 // Array of output values. Output order left to right.
 std::vector<int> Output;
+
+static const int HALT = 0;
+static const int MAX_MEMORY = 100;
 
 // Instructions map: opcode -> function
 std::unordered_map<int, std::function<void(int)> > Opcodes;
@@ -148,7 +150,7 @@ void loop(Mode mode) {
         // Opcode: operation to perform
         int opcode = instruction[0] - '0';
 
-        if (opcode == 0) {  // TODO test 999
+        if (opcode == HALT) {
             std::cout << "Halting the program" << std::endl;
             return;
         }
@@ -159,14 +161,13 @@ void loop(Mode mode) {
 
         // Prepare next instruction before the actual execution
         Counter++;
-        if (Counter > 100 && mode != Mode::CLI) {
+        if (Counter > MAX_MEMORY && mode != Mode::CLI) {
             std::cout << "Counter overflow error" << std::endl;
             return;
         }
 
         if (opcode == 9) {
             // Executes for IN & OUT
-            // TODO stoi error checking
             Opcodes[std::stoi(instruction)](address);
         } else {
             // Executes for the rest
