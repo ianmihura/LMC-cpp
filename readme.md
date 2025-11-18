@@ -5,19 +5,24 @@ It is a CLI that can be used to execute LMC code.
 ### Use
 
 - Compile the C++ source code in the repo (`main.cpp` file) into an `lmc` app
-- Execute it:
+```bash
+g++ main.cpp -o lmc
+```
+
+### Execute it:
 
 ```bash
 # print out help
 lmc -h
 
-# interactive CLI
-lmc -cli
+# load the template file: multiplies two input args
+lmc -file mult.lmc -i 5 6
 
-# -file feeds the file to be run
-# -i inputs required by program
-lmc -file cpp/mult.lmc -i 5 6 
-lmc -file cpp/mult.lmc -i 5 6 -debug
+# try the debuger!!
+lmc -file mult.lmc -i 5 6 -debug
+
+# interactive CLI (wip: works, but limited visibility)
+lmc -cli
 ```
 
 ### Write your own LMC
